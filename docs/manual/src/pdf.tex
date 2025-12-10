@@ -1,0 +1,24 @@
+\documentclass[usletter]{article}
+\usepackage{DejaVuSans}
+\renewcommand*\familydefault{\sfdefault}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{listings}
+\lstset{
+  breaklines=true,
+  postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space},
+}
+\usepackage{pdfpages}
+\usepackage[hidelinks]{hyperref}
+\begin{document}
+
+  \include{src/common.tex}
+
+  %module documentation section
+
+  \includepdf[pages=-, addtotoc={1,subsection,1,spio,p1}, pagecommand={}]{files_sipo-v.pdf}
+  \includepdf[pages=-, addtotoc={1,subsection,1,tb\_sipo-v,p1}, pagecommand={}]{files2_tb_sipo-v.pdf}
+  \includepdf[pages=-, addtotoc={1,subsection,1,tb\_cocotb-py,p1}, pagecommand={}]{files2_tb_cocotb-py.pdf}
+  \includepdf[pages=-, addtotoc={1,subsection,1,tb\_cocotb-v,p1}, pagecommand={}]{files2_tb_cocotb-v.pdf}
+
+\end{document}

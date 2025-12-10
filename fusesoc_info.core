@@ -1,0 +1,56 @@
+CAPI=2:
+
+name: AFRL:simple:holdbuffer:1.0.0
+description: Pipeline backpressure enabled busses including ready.
+
+filesets:
+  src:
+    files:
+      - src/holdbuffer.v
+    file_type: verilogSource
+  
+  tb:
+    files:
+      - tb/tb_holdbuffer.v
+    file_type: verilogSource
+
+  tb_cocotb:
+    files:
+      - tb/tb_cocotb.py : {file_type : user, copyto : .}
+      - tb/tb_cocotb.v : { file_type: verilogSource }
+    
+targets:
+  default: &default
+    description: Default for IP intergration.
+    filesets: [src]
+
+  lint:
+    description: Lint with Verible
+    toplevel: sipo
+    filesets: [src]
+    default_tool: veriblelint
+    tools:
+      veriblelint:
+        rules:
+         - "-explicit-parameter-storage-type,-parameter-name-style,-line-length"
+
+  sim_cocotb:
+    <<: *default
+    description: Cocotb unit tests
+    flow: sim
+    flow_options:
+      tool: icarus
+      cocotb_module: tb_cocotb
+      timescale: 1ns/1ns
+      vcs_options: [-timescale=1ns/1ns]
+    filesets_append: [tb_cocotb]
+    toplevel: tb_cocotb
+    parameters:
+      - BUS_WIDTH
+
+parameters:
+  BUS_WIDTH:
+    datatype    : int
+    default     : 32
+    description : number of bits for data bus
+    paramtype   : vlogparam
