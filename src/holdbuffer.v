@@ -80,7 +80,7 @@ module holdbuffer #(
     input   wire                    m_data_ready,
     input   wire                    m_data_ack
   );
-  
+
   // Group: States
   // Core has 3 states, that includes an error state.
   //
@@ -97,7 +97,7 @@ module holdbuffer #(
   // State: ERROR
   // In this state core will go into GET. This should never be reached.
   localparam ERROR = 2'd0;
-  
+
   // used to concatenated transistion signals
   // should we leave get state to hold?
   wire                    w_hold_check;

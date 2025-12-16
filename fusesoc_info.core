@@ -32,7 +32,7 @@ targets:
     tools:
       veriblelint:
         rules:
-         - "-explicit-parameter-storage-type,-parameter-name-style,-line-length"
+         - "-explicit-parameter-storage-type,-parameter-name-style,-line-length,-no-trailing-spaces"
 
   sim_cocotb:
     <<: *default
