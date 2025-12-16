@@ -1,0 +1,1 @@
+﻿NDSummary.OnToolTipsLoaded("SystemVerilogModule:dut",{27:"<div class=\"NDToolTip TModule LSystemVerilog\"><div class=\"TTSummary\">Device under test, holdbuffer</div></div>"});

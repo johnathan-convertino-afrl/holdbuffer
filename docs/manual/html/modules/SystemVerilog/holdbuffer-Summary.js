@@ -1,0 +1,1 @@
+﻿NDFramePage.OnPageTitleLoaded("SystemVerilogModule:holdbuffer","holdbuffer");NDSummary.OnSummaryLoaded("SystemVerilogModule:holdbuffer",[["SystemVerilog","SystemVerilog"]],[["Modules","Module"]],[[36,0,0,"holdbuffer"]]);

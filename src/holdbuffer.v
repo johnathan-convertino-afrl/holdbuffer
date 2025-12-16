@@ -3,7 +3,7 @@
 //
 // author:  JAY CONVERTINO
 //
-// date:    20?/?/?
+// date:    2025/12/16
 //
 // about:   Brief
 // Holdbuffer is used to pipeline backpressure busses.
@@ -42,15 +42,20 @@
  *
  * Parametes:
  *  BUS_WIDTH         - width of the parallel data input in bits.
+ *  ACK_ENABLE        - enable ack output of all data writes, and reads.
  *
  * Ports:
  *  clk               - global clock for the core.
  *  rstn              - negative syncronus reset to clk.
+ *  timeout           - Active high to force core out of the hold state.
+ *  enable            - Active high to allow output of data. When low all output is blocked.
  *  s_data            - Input data that is BUS_WIDTH bits wide.
+ *  s_data_last       - Input data has hit the end of a stream of data.
  *  s_data_valid      - Input data is valid when 1 (high).
  *  s_data_ready      - Core is ready for input data when 1 (high).
  *  s_data_ack        - Output 1 when data is written to the register(s) of the core.
  *  m_data            - Output data that is BUS_WIDTH bits wide.
+ *  m_data_last       - Output data has hit the end of a stream of data.
  *  m_data_valid      - Output data is valid when 1 (high).
  *  m_data_ready      - Downstream is ready to output data when 1 (high).
  *  m_data_ack        - Downstream has registered the valid data when 1 (high).
@@ -76,16 +81,33 @@ module holdbuffer #(
     input   wire                    m_data_ack
   );
   
+  // Group: States
+  // Core has 3 states, that includes an error state.
+  //
+  //  <GET>   - d1
+  //  <HOLD>  - d3
+  //  <ERROR> - d0
+
+  // State: GET
+  // In this state core can register data.
   localparam GET   = 2'd1;
-  localparam ACK   = 2'd2;
+  // State: HOLD
+  // In this state core will hold onto registered data from get state.
   localparam HOLD  = 2'd3;
+  // State: ERROR
+  // In this state core will go into GET. This should never be reached.
   localparam ERROR = 2'd0;
   
+  // used to concatenated transistion signals
+  // should we leave get state to hold?
   wire                    w_hold_check;
+  // should we leave hold state to get?
   wire                    w_get_check;
 
+  // state register
   reg   [1:0]             r_state;
   
+  // data hold for get.
   reg                     r_data_ack;
   reg   [BUS_WIDTH-1:0]   r_data;
   reg                     r_data_last;
@@ -94,18 +116,21 @@ module holdbuffer #(
   reg                     rr_data_last;
   reg                     rr_data_valid;
   
+  // ready is core based and decoupled from input, which only dictates the state we are in. This is for pipelining purposes
   reg                     r_ready;
   
+  // assign outputs with register data only if enabled
   assign m_data       = (enable ? r_data        : {BUS_WIDTH{8'h00}});
   assign m_data_last  = (enable ? r_data_last   : 1'b0);
   assign m_data_valid = (enable ? r_data_valid  : 1'b0);
   assign s_data_ready = r_ready;
   assign s_data_ack   = r_data_ack;
   
+  // create concatenated signals for state transition checks.
   assign w_hold_check = (!m_data_ready || (ACK_ENABLE ? !m_data_ack : 1'b0)) && r_data_valid && !timeout && enable;
   assign w_get_check  = (ACK_ENABLE ? m_data_ack : 1'b0) || m_data_ready || timeout || !enable;
   
-  
+  // holdbuffer logic
   always @(posedge clk)
   begin
     if(rstn == 1'b0)
@@ -124,6 +149,7 @@ module holdbuffer #(
     end else begin
       r_state <= r_state;
       
+      // state machine
       case(r_state)
         GET:
         begin

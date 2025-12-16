@@ -1,4 +1,4 @@
-PROJECT_NAME := HOLDBUFFER
+PROJECT_NAME := holdbuffer
 
 MK_DIR := makefiles
 

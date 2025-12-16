@@ -1,0 +1,96 @@
+<!DOCTYPE HTML>
+
+<!--Converted with LaTeX2HTML 2024 (Released January 1, 2024) -->
+<HTML lang="en">
+<HEAD>
+<TITLE>In a Project</TITLE>
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
+<META NAME="viewport" CONTENT="width=device-width, initial-scale=1.0">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2024">
+
+<LINK REL="STYLESHEET" HREF="html.css">
+
+<LINK REL="previous" HREF="holdbuffer_node4.html">
+<LINK REL="next" HREF="holdbuffer_node6.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A
+ HREF="holdbuffer_node6.html">
+<IMG WIDTH="37" HEIGHT="24" ALT="next" SRC="next.png"></A> 
+<A
+ HREF="holdbuffer_node2.html">
+<IMG WIDTH="26" HEIGHT="24" ALT="up" SRC="up.png"></A> 
+<A
+ HREF="holdbuffer_node4.html">
+<IMG WIDTH="63" HEIGHT="24" ALT="previous" SRC="prev.png"></A> 
+<A ID="tex2html50"
+  HREF="holdbuffer_node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A
+ HREF="holdbuffer_node6.html">Architecture</A>
+<B> Up:</B> <A
+ HREF="holdbuffer_node2.html">Usage</A>
+<B> Previous:</B> <A
+ HREF="holdbuffer_node4.html">Dependencies</A>
+ &nbsp; <B>  <A ID="tex2html51"
+  HREF="holdbuffer_node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A ID="SECTION00023000000000000000">
+In a Project</A>
+</H2>
+
+<P>
+This can be used to pipeline any bus to bus interface. It mimicks the axi streaming one for one, but most others are
+similar enough to plug in without issue. The ack is added for this interfaces that require it and allows more flexable
+options vs just axi streaming (which includes standard AXI channels). If no timeout or enable is needed set timeout to 0
+and enable to 1 and they will be ignored. If ack is needed the ACK_ENABLE parameter must be set to 1.
+
+<P>
+Adding the core to a fusesoc project, outside of adding the verilog module to your code, requires it is added as dependency.
+Example:
+<TABLE FRAME="VOID" CELLPADDING="4"><TR><TD>
+<PRE>
+  dep:
+    depend:
+      - "&gt;=AFRL:simple:holdbuffer:1.0.0"
+</PRE>
+</TD></TR></TABLE>
+
+<P>
+Module instantiation:
+<TABLE FRAME="VOID" CELLPADDING="4"><TR><TD>
+<PRE>
+  holdbuffer #(
+    .BUS_WIDTH(BUS_WIDTH)
+  ) inst_holdbuffer (
+    .clk(clk),
+    .rstn(rstn),
+    .timeout(timeout),
+    .enable(enable),
+    .s_data(s_data_tdata),
+    .s_data_last(s_data_tlast),
+    .s_data_valid(s_data_tvalid),
+    .s_data_ready(s_data_tready),
+    .s_data_ack(s_data_ack),
+    .m_data(m_data_tdata),
+    .m_data_last(m_data_tlast),
+    .m_data_valid(m_data_tvalid),
+    .m_data_ready(m_data_tready),
+    .m_data_ack(m_data_ack)
+  );
+</PRE>
+</TD></TR></TABLE>
+
+<P>
+<BR><HR>
+
+</BODY>
+</HTML>

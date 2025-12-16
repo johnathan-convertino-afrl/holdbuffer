@@ -3,7 +3,7 @@
 //
 // author:  JAY CONVERTINO
 //
-// date:    2024/12/10
+// date:    2025/12/15
 //
 // about:   Brief
 // Test bench wrapper for cocotb
@@ -89,7 +89,7 @@ module tb_cocotb #(
     .clk(clk),
     .rstn(rstn),
     .timeout(timeout),
-    .enalbe(enable),
+    .enable(enable),
     .s_data(s_data_tdata),
     .s_data_last(s_data_tlast),
     .s_data_valid(s_data_tvalid),

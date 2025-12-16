@@ -8,7 +8,7 @@
 
    author: Jay Convertino  
    
-   date: 2025.?.?  
+   date: 2025.12.16
    
    details: Pipeline backpressure enabled busses including ready.  
    

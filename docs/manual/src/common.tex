@@ -1,7 +1,7 @@
 \begin{titlepage}
   \begin{center}
 
-  {\Huge SIPO}
+  {\Huge HOLDBUFFER}
 
   \vspace{25mm}
 
@@ -27,10 +27,10 @@
 \subsection{Introduction}
 
 \par
-This core converts the serial input data to parallel output data. This is done on a positive clock edge in relation to a active high enable.
-The enable sets the rate data is sampled. This core is useful for any serial to parallel operation such as UARTS, SPI, i2c, 1553, etc.
-This is a fusesoc 2.X compatible core and its VLNV is
-AFRL:simple:sipo:X.X.X.
+This core is used for pipelining axi-x interfaces alonge with others such as FIFOS.
+It is made to be flexable and the inclusion of the ack helps in creating a universal
+bus pipelining core. This decouples the ready and registers all data. There will be 
+latency. Similar to a skid buffer in concept.
 
 \subsection{Dependencies}
 
@@ -45,76 +45,59 @@ The following are the dependencies of the cores.
 
 \subsection{In a Project}
 \par
-This core is made to be used on the same clock domain as the input parallel data. The serial input rate is set by the enable.
-The enable should only be pulsed for one clock cycle. If the clock is the rate the enable should be tied high. Load has to be
-used to get the output data and reset the input count. The data count provers other cores a bit count to know what bit currently being
-input to the core. On load data is cleared from the input register and the count is reset to 0. Once enable is toggled the count
-will increment and indicates how many bits of the word are contained in the register. The register is full once the max number
-of bits is reached on the counter output. Direction of MSb first or LSb first is set by the rev input. This can be changed at anytime.
-\begin{enumerate}
-  \item Set ena to 1 at rising clock edge for one clock cycle
-  \item Continue till the counter hits the number of bits needed.
-  \item Read the parallel data output to capture data.
-  \item Assert load to 1 to restart counter and clear parallel register.
-\end{enumerate}
+This can be used to pipeline any bus to bus interface. It mimicks the axi streaming one for one, but most others are
+similar enough to plug in without issue. The ack is added for this interfaces that require it and allows more flexable
+options vs just axi streaming (which includes standard AXI channels). If no timeout or enable is needed set timeout to 0
+and enable to 1 and they will be ignored. If ack is needed the ACK\_ENABLE parameter must be set to 1.
 
 Adding the core to a fusesoc project, outside of adding the verilog module to your code, requires it is added as dependency.
 Example:
 \begin{lstlisting}[language=bash]
   dep:
     depend:
-      - ">=AFRL:simple:sipo:1.0.1"
+      - ">=AFRL:simple:holdbuffer:1.0.0"
 \end{lstlisting}
 
 Module instantiation:
 \begin{lstlisting}[language=Verilog]
-    sipo #(
-      .BUS_WIDTH(4)
-    ) inst_sipo (
-      .clk(clk),
-      .rstn(rstn),
-      .ena(ena),
-      .rev(rev),
-      .load(load),
-      .pdata(pdata),
-      .reg_count_amount(0),
-      .sdata(sdata),
-      .dcount(dcount)
-    );
+  holdbuffer #(
+    .BUS_WIDTH(BUS_WIDTH)
+  ) inst_holdbuffer (
+    .clk(clk),
+    .rstn(rstn),
+    .timeout(timeout),
+    .enable(enable),
+    .s_data(s_data_tdata),
+    .s_data_last(s_data_tlast),
+    .s_data_valid(s_data_tvalid),
+    .s_data_ready(s_data_tready),
+    .s_data_ack(s_data_ack),
+    .m_data(m_data_tdata),
+    .m_data_last(m_data_tlast),
+    .m_data_valid(m_data_tvalid),
+    .m_data_ready(m_data_tready),
+    .m_data_ack(m_data_ack)
+  );
 \end{lstlisting}
 
 \section{Architecture}
 \par
-This core is made to interface for serial to parallel data. On each enable pulse on a positive clock edge the input serial
-line will be sampled. The counter starts at 0 and the shift is complete once it hits BUS\_WIDTH * 8. For a 32 bit word you will
-need 32 enable pulses. These will correspond to counter output 0 to 31. 32 will signal the shift is done and the parallel output
-data is valid. Once it is valid data can be read and load asserted. Load will reset the core and clear it for the next shift operation.
-All data is shifted in MSb to LSb or LSb to MSb. This is set with the rev input. When active high (1) the LSb to MSb method is used. When
-rev is set to 0 MSb to LSb is used.
-The only module is the sipo module. It is listed below.
+This core can be used with any bus. Its data width is dictated in bytes and has the ability to be forced
+out of hold with a timeout signal. It also has a enable to turn off all outputs of the core to mask out data.
+The core will buffer data in normal operation and its best case latency is one clock cycle. Its worst case is 
+two when ready is not active (we are not ready). Usage is similar to a axi streaming interface.
 
 \begin{itemize}
-  \item \textbf{sipo} Convert serial data to parallel by shifting in data on each enable pulse on a rising clock. (see core for documentation).
+  \item \textbf{holdbuffer} decouple ready signal for pipelining.
 \end{itemize}
 
 Please see \ref{Module Documentation} for more information.
-
-\subsection{Waveform}
-\par
-Below is a waveform in a typical application of the core for MSb to LSb. This shows the count up and how the enable is pulsed to increment it.
-
-\includegraphics[width=\textwidth]{img/diagrams/waveform_rev0.png}
-
-\par
-Next shows the core with rev set to 1 for LSb to MSb operation.
-
-\includegraphics[width=\textwidth]{img/diagrams/waveform_rev1.png}
 
 
 \section{Building}
 
 \par
-The SIPO core is written in Verilog 2001. They should synthesize in any modern FPGA software. The core comes as a fusesoc packaged core and can be included in any other core as a dependency. Be sure you have meet the dependencies listed in the previous section. This core also has a target called lint for verilog linting useing verible-verilog-lint.
+The HOLDBUFFER core is written in Verilog 2001. They should synthesize in any modern FPGA software. The core comes as a fusesoc packaged core and can be included in any other core as a dependency. Be sure you have meet the dependencies listed in the previous section. This core also has a target called lint for verilog linting useing verible-verilog-lint.
 
 \subsection{fusesoc}
 \par
@@ -171,12 +154,12 @@ To use the cocotb tests you must install the following python libraries.
 
 The targets available are listed below.
 \begin{itemize}
-  \item \textbf{sim\_cocotb} Standard simulation PISO conversion using cocotb.
+  \item \textbf{sim\_cocotb} Standard simulation HOLDBUFFER using cocotb.
 \end{itemize}
 
 The targets above can be run with various parameters.
 \begin{lstlisting}[language=bash]
-  $ fusesoc run --target sim_cocotb AFRL:simple:sipo:1.0.1
+  $ fusesoc run --target sim_cocotb AFRL:simple:holdbuffer:1.0.0
 \end{lstlisting}
 
 \newpage
@@ -186,8 +169,7 @@ The targets above can be run with various parameters.
 \par
 
 \begin{itemize}
-\item \textbf{sipo} SIPO converter\\
-\item \textbf{tb\_sipo-v} Verilog test bench\\
+\item \textbf{holdbuffer} HOLDBUFFER converter\\
 \item \textbf{tb\_cocotb-py} Cocotb python test routines\\
 \item \textbf{tb\_cocotb-v} Cocotb verilog test bench\\
 \end{itemize}
