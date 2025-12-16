@@ -1,11 +1,22 @@
 #!/bin/bash
 
+failed=0
+
 printf "Add verible to path\n"
 
 export PATH=$(pwd)/verible/bin/:$PATH 
 
-core_name=$(fusesoc --cores-root . list-cores | tail -1 | awk '{print$1}')
+core_names=($(fusesoc --cores-root . list-cores | awk 'NR>5{print$1}'))
 
-printf "Found Core: %s\n" $core_name
+core_names=${core_names//$'\n'/' '}
 
-fusesoc --cores-root . run --target lint $core_name
+for i in "${core_names[@]}"; do
+    if $(fusesoc --cores-root . run --target lint "$i"); then 
+      echo "Lint passed for $i"
+    else 
+      echo "Lint failed for $i"
+      failed=1
+    fi
+done
+
+exit $failed
