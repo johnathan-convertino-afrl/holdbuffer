@@ -31,7 +31,7 @@
 ### DOCUMENTATION
   For detailed usage information, please navigate to one of the following sources. They are the same, just in a different format.
 
-  - [HOLDBUFFER.pdf](docs/manual/HOLDBUFFER.pdf)
+  - [holdbuffer].pdf](docs/manual/holdbuffer.pdf)
   - [github page](https://johnathan-convertino-afrl.github.io/holdbuffer/)
 
 ### PARAMETERS
