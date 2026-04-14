@@ -73,17 +73,17 @@ def create_latex_item_list(dict_of_values, target_values, name):
       for sub_key, items in filtered_stuff.items():
         if type(items) is list:
           for item in items:
-            list_temp += f"\t\item {item}\n"
+            list_temp += f"\t\\item {item}\n"
         elif sub_key == "file_type":
-          temp += f"\t\item[$\space$] Type: {items}\n"
+          temp += f"\t\\item[$\\space$] Type: {items}\n"
         elif sub_key == "description":
-          temp += f"\t\item[$\space$] Info: {items}\n"
+          temp += f"\t\\item[$\\space$] Info: {items}\n"
 
       temp += list_temp
 
-      temp += f"\t\end{{itemize}}\n"
+      temp += f"\t\\end{{itemize}}\n"
 
-  temp += f"\end{{itemize}}\n"
+  temp += f"\\end{{itemize}}\n"
 
   return temp.replace('_', '\\' + '_')
 
@@ -93,7 +93,7 @@ def parse_args(argv):
 
   parser.add_argument('--prime_key_filter',      action='store',       default=None,               dest='prime_key_filter',    required=True, help='First key value used to filter the yaml.')
   parser.add_argument('--sub_key_filter',        action='store',       default=None,               dest='sub_key_filter',      required=True, help='Second key value used to filter the result of the first key value.')
-  parser.add_argument('--list_name',             action='store',       default=None,               dest='list_name',           required=True, help='Name of the list to generate (will be a \subsection header).')
+  parser.add_argument('--list_name',             action='store',       default=None,               dest='list_name',           required=True, help='Name of the list to generate (will be a \\subsection header).')
   parser.add_argument('--core_file',             action='store',       default=None,               dest='core_file',           required=True, help='Name of the fusesoc file to parse.')
   parser.add_argument('--output',                action='store',       default=None,               dest='output',              required=True, help='Name of the output latex file to generate (will be a .tex file).')
 

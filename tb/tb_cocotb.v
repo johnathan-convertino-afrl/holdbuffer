@@ -90,6 +90,7 @@ module tb_cocotb #(
     .rstn(rstn),
     .timeout(timeout),
     .enable(enable),
+    .clear(1'b0),
     .s_data(s_data_tdata),
     .s_data_last(s_data_tlast),
     .s_data_valid(s_data_tvalid),
