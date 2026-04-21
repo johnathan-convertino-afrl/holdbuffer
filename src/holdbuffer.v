@@ -167,11 +167,11 @@ module holdbuffer #(
           
           r_data_ack <= 1'b0;
           
-          r_data <= (clear ? {BUS_WIDTH{1'b0}} : s_data);
-          r_data_last <= (clear ? 1'b0 : s_data_last);
-          r_data_valid <= (clear ? 1'b0 : s_data_valid);
+          r_data        <= (clear || !enable ? {BUS_WIDTH{1'b0}} : s_data);
+          r_data_last   <= (clear || !enable ? 1'b0              : s_data_last);
+          r_data_valid  <= (clear || !enable ? 1'b0              : s_data_valid);
           
-          if(s_data_valid && !clear)
+          if(s_data_valid && !clear && enable)
           begin
             r_data_ack <= (ACK_ENABLE ? 1'b1 : 1'b0);
           end
