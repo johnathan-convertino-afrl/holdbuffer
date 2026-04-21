@@ -50,6 +50,7 @@
  *  timeout           - Active high to force core out of the hold state.
  *  enable            - Active high to allow output of data. When low all output is blocked.
  *  clear             - Active high to clear data from registers and do not register new data.
+ *  read_last         - Active high out to indicate a word with last set has been read by a ready device (0 has not been read) only valid while m_data_last is active high (1).
  *  s_data            - Input data that is BUS_WIDTH bits wide.
  *  s_data_last       - Input data has hit the end of a stream of data.
  *  s_data_valid      - Input data is valid when 1 (high).
@@ -71,6 +72,7 @@ module holdbuffer #(
     input   wire                    timeout,
     input   wire                    enable,
     input   wire                    clear,
+    output  wire                    read_last,
     input   wire  [BUS_WIDTH-1:0]   s_data,
     input   wire                    s_data_last,
     input   wire                    s_data_valid,
@@ -106,6 +108,8 @@ module holdbuffer #(
   // should we leave hold state to get?
   wire                    w_get_check;
 
+  // valid, last and read
+  wire                    w_read_last;
   // state register
   reg   [1:0]             r_state;
   
@@ -122,15 +126,18 @@ module holdbuffer #(
   reg                     r_ready;
   
   // assign outputs with register data only if enabled
-  assign m_data       = (enable ? r_data        : {BUS_WIDTH{8'h00}});
+  assign m_data       = (enable ? r_data        : {BUS_WIDTH{1'b0}});
   assign m_data_last  = (enable ? r_data_last   : 1'b0);
   assign m_data_valid = (enable ? r_data_valid  : 1'b0);
-  assign s_data_ready = r_ready;
-  assign s_data_ack   = r_data_ack;
+  assign s_data_ready = (enable ? r_ready       : 1'b0);
+  assign s_data_ack   = (enable ? r_data_ack    : 1'b0);
+  assign read_last    = (enable ? w_read_last   : 1'b0);
   
   // create concatenated signals for state transition checks.
   assign w_hold_check = (!m_data_ready || (ACK_ENABLE ? !m_data_ack : 1'b0)) && r_data_valid && !timeout && enable && !clear;
   assign w_get_check  = (ACK_ENABLE ? m_data_ack : 1'b0) || m_data_ready || timeout || !enable || clear;
+  
+  assign w_read_last = r_data_last & r_data_valid & (r_state == GET ? ~w_hold_check : w_get_check);
   
   // holdbuffer logic
   always @(posedge clk)
@@ -148,6 +155,7 @@ module holdbuffer #(
       rr_data_valid <= 1'b0;
       
       r_ready <= 1'b0;
+  
     end else begin
       r_state <= r_state;
       
