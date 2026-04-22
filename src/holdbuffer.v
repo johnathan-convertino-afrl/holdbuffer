@@ -50,6 +50,7 @@
  *  timeout           - Active high to force core out of the hold state.
  *  enable            - Active high to allow output of data. When low all output is blocked.
  *  clear             - Active high to clear data from registers and do not register new data.
+ *  hold              - Active high force hold state to hold data and take no new data, but when read it will clear whats in the register.
  *  read_last         - Active high out to indicate a word with last set has been read by a ready device (0 has not been read) only valid while m_data_last is active high (1).
  *  s_data            - Input data that is BUS_WIDTH bits wide.
  *  s_data_last       - Input data has hit the end of a stream of data.
@@ -72,6 +73,7 @@ module holdbuffer #(
     input   wire                    timeout,
     input   wire                    enable,
     input   wire                    clear,
+    input   wire                    hold,
     output  wire                    read_last,
     input   wire  [BUS_WIDTH-1:0]   s_data,
     input   wire                    s_data_last,
@@ -134,7 +136,7 @@ module holdbuffer #(
   assign read_last    = (enable ? w_read_last   : 1'b0);
   
   // create concatenated signals for state transition checks.
-  assign w_hold_check = (!m_data_ready || (ACK_ENABLE ? !m_data_ack : 1'b0)) && r_data_valid && !timeout && enable && !clear;
+  assign w_hold_check = ((!m_data_ready || (ACK_ENABLE ? !m_data_ack : 1'b0)) && r_data_valid && !timeout && enable && !clear) || hold;
   assign w_get_check  = (ACK_ENABLE ? m_data_ack : 1'b0) || m_data_ready || timeout || !enable || clear;
   
   assign w_read_last = r_data_last & r_data_valid & (r_state == GET ? ~w_hold_check : w_get_check);
@@ -180,13 +182,13 @@ module holdbuffer #(
           begin
             r_ready <= 1'b0;
             
-            r_data <= r_data;
-            r_data_last <= r_data_last;
-            r_data_valid <= r_data_valid;
+            r_data <= (m_data_ready ? {BUS_WIDTH{1'b0}} : r_data);
+            r_data_last <= (m_data_ready ? 1'b0 : r_data_last);
+            r_data_valid <= (m_data_ready ? 1'b0 : r_data_valid);
             
-            rr_data <= s_data;
-            rr_data_last <= s_data_last;
-            rr_data_valid <= s_data_valid;
+            rr_data <= (m_data_ready ? rr_data : s_data);
+            rr_data_last <= (m_data_ready ? rr_data_last : s_data_last);
+            rr_data_valid <= (m_data_ready ? rr_data_valid : s_data_valid);
             
             r_state <= HOLD;
           end
@@ -209,7 +211,7 @@ module holdbuffer #(
             rr_data_last <= 1'b0;
             rr_data_valid <= 1'b0;
             
-            r_state <= GET;
+            r_state <= (hold ? HOLD : GET);
             
             if(timeout || !enable || clear)
             begin
