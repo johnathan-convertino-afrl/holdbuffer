@@ -43,6 +43,7 @@
  * Parametes:
  *  BUS_WIDTH         - width of the parallel data input in bits.
  *  ACK_ENABLE        - enable ack output of all data writes, and reads.
+ *  REG_ENABLE        - enable register of data regardless of enable, allows other cores to say its ready and then shove data in for quick routing.
  *
  * Ports:
  *  clk               - global clock for the core.
@@ -64,7 +65,8 @@
  */
 module holdbuffer #(
     parameter integer   BUS_WIDTH = 8,
-    parameter integer   ACK_ENABLE = 0
+    parameter integer   ACK_ENABLE = 0,
+    parameter integer   REG_ENABLE = 0
   ) (
     input   wire                    clk,
     input   wire                    rstn,
@@ -99,6 +101,8 @@ module holdbuffer #(
   // State: ERROR
   // In this state core will go into GET. This should never be reached.
   localparam ERROR = 2'd0;
+  
+  localparam REG_ENABLE_BIN = (REG_ENABLE > 0 ? 1'b1 : 1'b0);
 
   // used to concatenated transistion signals
   // should we leave get state to hold?
@@ -165,9 +169,9 @@ module holdbuffer #(
           
           r_data_ack <= 1'b0;
           
-          r_data        <= (!enable ? {BUS_WIDTH{1'b0}} : s_data);
-          r_data_last   <= (!enable ? 1'b0              : s_data_last);
-          r_data_valid  <= (!enable ? 1'b0              : s_data_valid);
+          r_data        <= (REG_ENABLE_BIN | enable ? s_data       : {BUS_WIDTH{1'b0}});
+          r_data_last   <= (REG_ENABLE_BIN | enable ? s_data_last  : 1'b0);
+          r_data_valid  <= (REG_ENABLE_BIN | enable ? s_data_valid : 1'b0);
           
           if(s_data_valid && enable)
           begin
