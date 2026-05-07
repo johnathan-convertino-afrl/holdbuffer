@@ -102,7 +102,7 @@ module holdbuffer #(
   // In this state core will go into GET. This should never be reached.
   localparam ERROR = 2'd0;
   
-  localparam REG_ENABLE_BIN = (REG_ENABLE > 0 ? 1'b1 : 1'b0);
+  wire w_reg_enable;
 
   // used to concatenated transistion signals
   // should we leave get state to hold?
@@ -134,6 +134,7 @@ module holdbuffer #(
   assign s_data_ready = (enable ? r_ready       : 1'b0);
   assign s_data_ack   = (enable ? r_data_ack    : 1'b0);
   assign read_last    = (enable ? w_read_last   : 1'b0);
+  assign w_reg_enable = (REG_ENABLE > 0 ? 1'b1  : enable);
   
   // create concatenated signals for state transition checks.
   assign w_hold_check = ((!m_data_ready || (ACK_ENABLE ? !m_data_ack : 1'b0)) && r_data_valid && !timeout && enable);
@@ -169,9 +170,9 @@ module holdbuffer #(
           
           r_data_ack <= 1'b0;
           
-          r_data        <= (REG_ENABLE_BIN | enable ? s_data       : {BUS_WIDTH{1'b0}});
-          r_data_last   <= (REG_ENABLE_BIN | enable ? s_data_last  : 1'b0);
-          r_data_valid  <= (REG_ENABLE_BIN | enable ? s_data_valid : 1'b0);
+          r_data        <= (w_reg_enable ? s_data       : {BUS_WIDTH{1'b0}});
+          r_data_last   <= (w_reg_enable ? s_data_last  : 1'b0);
+          r_data_valid  <= (w_reg_enable ? s_data_valid : 1'b0);
           
           if(s_data_valid && enable)
           begin
